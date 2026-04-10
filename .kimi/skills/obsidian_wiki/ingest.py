@@ -12,7 +12,7 @@ from .wiki_manager import WikiManager
 
 def ingest_source(
     source_path: str,
-    category: str,
+    category: str = None,
     title: str = None,
     wiki_manager: WikiManager = None,
 ) -> Dict:
@@ -21,7 +21,7 @@ def ingest_source(
 
     Args:
         source_path: 原始资料路径（相对于 raw/ 目录或绝对路径）
-        category: 资料类别 (work|life|learning)
+        category: 资料类别 (work|life|learning)，如不指定则自动分类
         title: 资料标题（可选）
         wiki_manager: WikiManager 实例（可选）
 
@@ -40,6 +40,10 @@ def ingest_source(
 
     # 确定标题
     doc_title = title or _extract_title(source_content) or raw_file.stem
+
+    # 自动分类（如果未指定类别）
+    if category is None:
+        category = auto_classify(doc_title, source_content)
 
     # 创建源摘要页
     date_str = datetime.now().strftime("%Y-%m-%d")
@@ -83,15 +87,136 @@ def ingest_source(
     wm.log_operation(
         "ingest",
         doc_title,
-        f"创建了源摘要页，提取了 {len(entities)} 个实体和 {len(concepts)} 个概念",
+        f"分类: {category} | 创建了源摘要页，提取了 {len(entities)} 个实体和 {len(concepts)} 个概念",
     )
 
     return {
         "success": True,
+        "category": category,
         "source_page": str(source_page_path.relative_to(wm.root_path)),
         "entities": entity_pages,
         "concepts": concept_pages,
     }
+
+
+def auto_classify(title: str, content: str) -> str:
+    """
+    自动分类文档
+
+    根据标题和内容自动判断类别 (work|life|learning)
+
+    Args:
+        title: 文档标题
+        content: 文档内容
+
+    Returns:
+        分类结果: work|life|learning
+    """
+    title_lower = title.lower()
+    content_sample = content[:2000].lower()  # 只分析前2000字符
+
+    # 工作相关关键词
+    work_keywords = [
+        # 业务相关
+        "需求", "prd", "产品", "项目", "系统", "平台", "功能", "模块",
+        "业务", "客户", "用户", "运营", "数据", "分析", "报告",
+        "设计", "开发", "测试", "上线", "迭代", "版本", "发布",
+        "会议", "纪要", "评审", "汇报", "总结", "复盘", "规划",
+        "调研", "竞品", "市场", "行业", "趋势", "策略", "方案",
+        "合同", "协议", "报价", "预算", "成本", "收益", "roi",
+        "资管", "估值", "ta", "清算", "基金", "证券", "银行",
+        "金融", "理财", "投资", "风控", "合规", "监管", "新规",
+        # 英文关键词
+        "requirement", "product", "project", "system", "platform",
+        "business", "client", "meeting", "report", "analysis",
+        "design", "development", "plan", "proposal", "review",
+    ]
+
+    # 生活相关关键词
+    life_keywords = [
+        # 旅行相关
+        "旅行", "旅游", "游记", "攻略", "行程", "酒店", "机票", "景点",
+        # 购物相关
+        "购物", "购买", "评测", "体验", "推荐", "清单", "对比",
+        "家具", "家电", "数码", "手机", "电脑", "相机", "耳机",
+        # 宠物相关
+        "宠物", "猫", "狗", "猫咪", "狗狗", "疫苗", "绝育", "喂养",
+        # 情感生活
+        "情感", "感情", "恋爱", "婚姻", "家庭", "亲子", "日记", "感悟",
+        # 健康运动
+        "健康", "运动", "健身", "饮食", "减肥", "睡眠", "体检",
+        # 娱乐休闲
+        "电影", "音乐", "游戏", "读书", "美食", "烹饪", "手工",
+        # 英文关键词
+        "travel", "trip", "hotel", "shopping", "pet", "cat", "dog",
+        "life", "daily", "diary", "emotion", "feeling", "family",
+        "health", "fitness", "exercise", "food", "cooking", "movie",
+    ]
+
+    # 学习相关关键词
+    learning_keywords = [
+        # 学习相关
+        "学习", "笔记", "读书", "阅读", "课程", "培训", "教程",
+        "方法", "方法论", "框架", "模型", "理论", "原理", "概念",
+        # 技术相关
+        "技术", "编程", "代码", "算法", "架构", "数据库", "前端", "后端",
+        "python", "java", "javascript", "sql", "api", "git",
+        # 考试证书
+        "考试", "证书", "认证", "资格", "pmp", "cpa", "cfa", "frm",
+        # 语言学习
+        "英语", "日语", "韩语", "法语", "德语", "雅思", "托福",
+        # 行业知识
+        "行业", "研究", "论文", "文献", "综述", "深度", "洞察",
+        "趋势", "前景", "发展", "变革", "创新", "突破",
+        # 英文关键词
+        "learning", "study", "course", "book", "note", "method",
+        "technology", "programming", "algorithm", "exam", "certification",
+        "research", "paper", "thesis", "knowledge", "skill", "tutorial",
+    ]
+
+    # 计算各类别得分
+    work_score = 0
+    life_score = 0
+    learning_score = 0
+
+    # 标题权重更高
+    title_weight = 3
+    content_weight = 1
+
+    for keyword in work_keywords:
+        if keyword in title_lower:
+            work_score += title_weight
+        if keyword in content_sample:
+            work_score += content_weight
+
+    for keyword in life_keywords:
+        if keyword in title_lower:
+            life_score += title_weight
+        if keyword in content_sample:
+            life_score += content_weight
+
+    for keyword in learning_keywords:
+        if keyword in title_lower:
+            learning_score += title_weight
+        if keyword in content_sample:
+            learning_score += content_weight
+
+    # 根据得分判断类别
+    scores = {
+        "work": work_score,
+        "life": life_score,
+        "learning": learning_score,
+    }
+
+    # 返回得分最高的类别
+    max_category = max(scores, key=scores.get)
+    max_score = scores[max_category]
+
+    # 如果所有得分都是0，默认归为 work
+    if max_score == 0:
+        return "work"
+
+    return max_category
 
 
 def _resolve_source_path(source_path: str, wm: WikiManager) -> Optional[Path]:

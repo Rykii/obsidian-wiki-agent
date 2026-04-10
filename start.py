@@ -7,7 +7,7 @@ Obsidian Wiki Agent - 启动器
 
 Commands:
     setup       初始化知识库
-    ingest      摄入资料
+    ingest      摄入资料（自动分类）
     query       查询知识
     lint        健康检查
     stats       统计信息
@@ -15,7 +15,7 @@ Commands:
 
 Examples:
     python start.py setup
-    python start.py ingest raw/work/文档.md --category work
+    python start.py ingest raw/文档.md
     python start.py query "什么是估值核算?"
     python start.py lint
 """

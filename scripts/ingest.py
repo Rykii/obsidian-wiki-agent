@@ -6,7 +6,8 @@
     python scripts/ingest.py <source_path> [--category work|life|learning]
 
 示例:
-    python scripts/ingest.py raw/work/需求文档.md --category work
+    python scripts/ingest.py raw/需求文档.md
+    python scripts/ingest.py raw/旅行攻略.md --category life
 """
 
 import argparse
@@ -25,15 +26,18 @@ def main():
     parser.add_argument(
         "--category",
         choices=["work", "life", "learning"],
-        default="work",
-        help="资料类别",
+        default=None,
+        help="资料类别（如不指定则自动分类）",
     )
     parser.add_argument("--title", help="资料标题（可选）")
 
     args = parser.parse_args()
 
     print(f"正在摄入资料: {args.source}")
-    print(f"类别: {args.category}")
+    if args.category:
+        print(f"指定类别: {args.category}")
+    else:
+        print("类别: 自动分类")
 
     result = ingest_source(
         source_path=args.source,
@@ -43,6 +47,7 @@ def main():
 
     if result["success"]:
         print("\n✓ 摄入成功!")
+        print(f"自动分类: {result['category']}")
         print(f"源摘要页: {result['source_page']}")
         print(f"\n提取的实体 ({len(result['entities'])}):")
         for entity in result["entities"]:

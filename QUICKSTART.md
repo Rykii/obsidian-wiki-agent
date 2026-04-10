@@ -14,14 +14,15 @@
 
 ### 2. 摄入第一份资料
 
-将资料放入 `raw/` 目录，然后告诉 Agent:
+将资料直接放入 `raw/` 目录，然后告诉 Agent:
 
 ```
-请摄入 raw/work/example-估值系统需求文档.md
+请摄入 raw/example-估值系统需求文档.md
 ```
 
 Agent 会:
 - 读取资料内容
+- **自动分类**（work/life/learning）
 - 创建源摘要页
 - 提取实体（估值系统、TA系统、资金清算系统）
 - 提取概念（估值核算、净值化转型）
@@ -57,9 +58,14 @@ Agent 会基于知识库内容回答，并引用相关页面。
 ### 摄入资料
 
 ```
-请摄入 raw/work/新产品需求.md
-请摄入 raw/life/旅行计划.md，类别为生活
-请摄入 raw/learning/读书笔记.md，类别为学习
+请摄入 raw/新产品需求.md
+请摄入 raw/旅行计划.md
+请摄入 raw/读书笔记.md
+```
+
+Agent 会自动分析内容并分类。如需手动指定类别:
+```
+请摄入 raw/文档.md，类别为 work
 ```
 
 ### 查询知识
@@ -99,10 +105,7 @@ Agent 会基于知识库内容回答，并引用相关页面。
 ```
 obsidian-wiki-agent/
 ├── KIMICODE.md          # Agent 配置（重要！）
-├── raw/                  # 放你的原始资料
-│   ├── work/            # 工作资料
-│   ├── life/            # 生活笔记
-│   └── learning/        # 学习资料
+├── raw/                  # 放你的原始资料（直接放入，Agent 自动分类）
 ├── wiki/                 # Agent 维护的知识库
 │   ├── index.md         # 索引
 │   ├── log.md           # 日志
@@ -122,7 +125,11 @@ obsidian-wiki-agent/
 ### 摄入资料
 
 ```bash
-python scripts/ingest.py raw/work/需求文档.md --category work
+# 自动分类
+python scripts/ingest.py raw/需求文档.md
+
+# 手动指定类别
+python scripts/ingest.py raw/需求文档.md --category work
 ```
 
 ### 查询知识

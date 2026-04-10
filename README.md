@@ -27,10 +27,7 @@ obsidian-wiki-agent/
 │   ├── concept.md
 │   ├── topic.md
 │   └── analysis.md
-├── raw/                     # 原始资料（只读）
-│   ├── work/               # 工作资料
-│   ├── life/               # 生活笔记
-│   └── learning/           # 学习资料
+├── raw/                     # 原始资料（只读）- 直接放入，Agent 自动分类
 ├── wiki/                    # 维基内容（Agent 维护）
 │   ├── work/               # 工作知识
 │   ├── life/               # 生活知识
@@ -75,16 +72,22 @@ python --version
 
 #### 资料摄入 (Ingest)
 
-将资料放入 `raw/` 目录，然后告诉 Agent:
+将资料直接放入 `raw/` 目录，然后告诉 Agent:
 
 ```
-请摄入 raw/work/估值系统需求文档.md，类别为 work
+请摄入 raw/估值系统需求文档.md
 ```
+
+Agent 会自动分析内容并分类到 work/life/learning 之一。
 
 或使用命令行:
 
 ```bash
-python scripts/ingest.py raw/work/估值系统需求文档.md --category work
+# 自动分类
+python scripts/ingest.py raw/估值系统需求文档.md
+
+# 手动指定类别
+python scripts/ingest.py raw/估值系统需求文档.md --category work
 ```
 
 #### 知识查询 (Query)
