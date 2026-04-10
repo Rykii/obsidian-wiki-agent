@@ -1,0 +1,16 @@
+# Obsidian Wiki Agent 依赖
+
+# 文档处理
+python-docx>=0.8.11
+PyPDF2>=3.0.0
+
+# YAML 处理
+PyYAML>=6.0
+
+# 可选：高级搜索
+# qmd>=0.1.0
+
+# 开发依赖
+# pytest>=7.0.0
+# black>=22.0.0
+# flake8>=4.0.0

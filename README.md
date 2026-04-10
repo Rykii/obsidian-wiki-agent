@@ -1,0 +1,368 @@
+# Obsidian Wiki Agent
+
+基于 [Karpathy's LLM-Wiki](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f) 模式构建的 Obsidian 知识库管理 Agent。
+
+专为全资产管理系统产品经理设计，支持工作、生活、学习三大知识领域的管理。
+
+## 核心特性
+
+- **三层架构**: Raw Sources → Wiki → Schema
+- **三大工作流**: Ingest(摄入) / Query(查询) / Lint(检查)
+- **知识复利**: 持续积累，自动交叉引用
+- **Obsidian 原生**: 完美兼容 Obsidian 的链接和图谱功能
+
+## 目录结构
+
+```
+obsidian-wiki-agent/
+├── KIMICODE.md              # Agent 配置文件（核心）
+├── README.md                # 本文件
+├── prompts/                 # Prompt 模板
+│   ├── ingest_prompt.md
+│   ├── query_prompt.md
+│   └── lint_prompt.md
+├── templates/               # 页面模板
+│   ├── source.md
+│   ├── entity.md
+│   ├── concept.md
+│   ├── topic.md
+│   └── analysis.md
+├── raw/                     # 原始资料（只读）
+│   ├── work/               # 工作资料
+│   ├── life/               # 生活笔记
+│   └── learning/           # 学习资料
+├── wiki/                    # 维基内容（Agent 维护）
+│   ├── work/               # 工作知识
+│   ├── life/               # 生活知识
+│   ├── learning/           # 学习知识
+│   ├── entities/           # 实体页面
+│   ├── concepts/           # 概念页面
+│   ├── index.md            # 内容索引
+│   └── log.md              # 操作日志
+├── scripts/                 # 辅助脚本
+│   ├── ingest.py           # 资料摄入
+│   ├── query.py            # 知识查询
+│   ├── lint.py             # 健康检查
+│   └── stats.py            # 统计信息
+└── .kimi/skills/obsidian_wiki/  # KimiCode Skill
+    ├── SKILL.md
+    ├── __init__.py
+    ├── wiki_manager.py
+    ├── ingest.py
+    ├── query.py
+    ├── lint.py
+    ├── entities.py
+    ├── concepts.py
+    ├── index_manager.py
+    └── utils.py
+```
+
+## 快速开始
+
+### 1. 环境准备
+
+确保已安装 Python 3.8+:
+
+```bash
+python --version
+```
+
+### 2. 配置 KimiCode Agent
+
+将 `KIMICODE.md` 的内容复制到 KimiCode 的 Agent 配置中，Agent 会自动读取并执行。
+
+### 3. 使用 Agent 管理知识库
+
+#### 资料摄入 (Ingest)
+
+将资料放入 `raw/` 目录，然后告诉 Agent:
+
+```
+请摄入 raw/work/估值系统需求文档.md，类别为 work
+```
+
+或使用命令行:
+
+```bash
+python scripts/ingest.py raw/work/估值系统需求文档.md --category work
+```
+
+#### 知识查询 (Query)
+
+向 Agent 提问:
+
+```
+什么是估值核算？
+对比 TA 系统和估值系统
+分析资管行业趋势
+```
+
+或使用命令行:
+
+```bash
+python scripts/query.py "什么是估值核算?"
+python scripts/query.py "对比TA系统和估值系统" --format table
+```
+
+#### 健康检查 (Lint)
+
+定期检查知识库健康:
+
+```
+请检查知识库健康
+```
+
+或使用命令行:
+
+```bash
+python scripts/lint.py
+python scripts/lint.py --type orphans
+```
+
+### 4. 在 Obsidian 中查看
+
+1. 打开 Obsidian
+2. 选择 "打开本地仓库"
+3. 选择 `obsidian-wiki-agent/wiki/` 目录
+4. 享受知识图谱!
+
+## 页面类型
+
+### 1. 源资料摘要 (Source)
+
+- 位置: `wiki/{category}/sources/`
+- 用途: 记录原始资料的摘要
+- 模板: `templates/source.md`
+
+### 2. 实体页 (Entity)
+
+- 位置: `wiki/entities/`
+- 类型: person, company, product, project
+- 用途: 记录具体的人、公司、产品、项目
+- 模板: `templates/entity.md`
+
+### 3. 概念页 (Concept)
+
+- 位置: `wiki/concepts/`
+- 类型: business, tech, methodology
+- 用途: 记录抽象概念、方法论、术语
+- 模板: `templates/concept.md`
+
+### 4. 主题页 (Topic)
+
+- 位置: `wiki/{category}/topics/`
+- 用途: 汇总某一主题的综合信息
+- 模板: `templates/topic.md`
+
+### 5. 分析页 (Analysis)
+
+- 位置: `wiki/{category}/analyses/`
+- 用途: 保存有价值的查询结果
+- 模板: `templates/analysis.md`
+
+## 特殊文件
+
+### wiki/index.md
+
+内容索引，由 Agent 自动维护。包含:
+- 统计信息
+- 按类别组织的页面列表
+- 标签云
+
+### wiki/log.md
+
+操作日志，按时间顺序记录所有操作:
+- 资料摄入
+- 知识查询
+- 健康检查
+- 页面更新
+
+### wiki/lint-report.md
+
+健康检查报告，记录发现的问题:
+- 孤立页面
+- 死链
+- 矛盾信息
+- 缺失实体
+- 标签不一致
+
+## 命名规范
+
+### 文件名
+- 使用小写字母和连字符
+- 日期格式: `YYYY-MM-DD`
+- 示例: `2024-01-15-估值系统需求.md`
+
+### 页面标题
+- 使用中文标题
+- 实体页: 实体名称
+- 概念页: 概念名称
+- 源摘要: 资料原标题
+
+### 链接格式
+- Obsidian 维基链接: `[[页面名]]`
+- 别名链接: `[[页面名|显示文本]]`
+- 块链接: `[[页面名#标题]]`
+
+## Frontmatter 规范
+
+所有 wiki 页面必须包含 YAML frontmatter:
+
+```yaml
+---
+title: 页面标题
+type: source|entity|concept|topic|analysis
+category: work|life|learning
+created: YYYY-MM-DD
+updated: YYYY-MM-DD
+tags: [tag1, tag2]
+status: draft|review|complete
+---
+```
+
+## 命令行工具
+
+### ingest.py - 资料摄入
+
+```bash
+python scripts/ingest.py <source_path> [options]
+
+Options:
+  --category {work,life,learning}  资料类别 (默认: work)
+  --title TEXT                    资料标题
+
+Examples:
+  python scripts/ingest.py raw/work/需求文档.md
+  python scripts/ingest.py raw/life/旅行攻略.md --category life --title "日本旅行"
+```
+
+### query.py - 知识查询
+
+```bash
+python scripts/query.py <question> [options]
+
+Options:
+  --format {markdown,table,list}  输出格式 (默认: markdown)
+  --save                         保存结果到 wiki
+  --category {work,life,learning} 限制查询类别
+
+Examples:
+  python scripts/query.py "什么是估值核算?"
+  python scripts/query.py "对比TA系统和估值系统" --format table
+  python scripts/query.py "分析行业趋势" --save
+```
+
+### lint.py - 健康检查
+
+```bash
+python scripts/lint.py [options]
+
+Options:
+  --type {all,orphans,deadlinks,contradictions,missing,tags} 检查类型 (默认: all)
+  --fix                                                      自动修复
+
+Examples:
+  python scripts/lint.py
+  python scripts/lint.py --type orphans
+```
+
+### stats.py - 统计信息
+
+```bash
+python scripts/stats.py
+```
+
+## 使用示例
+
+### 示例 1: 摄入工作资料
+
+1. 将需求文档放入 `raw/work/`
+2. 告诉 Agent: "请摄入 raw/work/估值系统需求文档.md"
+3. Agent 会:
+   - 创建源摘要页
+   - 提取实体（估值系统、TA系统、资金清算系统）
+   - 提取概念（估值核算、净值化转型）
+   - 更新索引
+
+### 示例 2: 查询知识
+
+问 Agent: "什么是估值核算？"
+
+Agent 会:
+1. 搜索相关页面
+2. 综合信息
+3. 给出带引用的回答
+
+### 示例 3: 健康检查
+
+告诉 Agent: "检查知识库健康"
+
+Agent 会:
+1. 检查孤立页面
+2. 检查死链
+3. 检查缺失实体
+4. 生成报告
+
+## 最佳实践
+
+1. **定期摄入**: 及时将新资料摄入知识库
+2. **保持审阅**: 审阅 Agent 创建的页面，确保准确性
+3. **定期清理**: 运行 lint 检查，修复问题
+4. **使用标签**: 为页面添加合适的标签
+5. **建立连接**: 主动创建页面间的链接
+
+## Obsidian 插件推荐
+
+- **Dataview**: 基于 frontmatter 的动态查询
+- **Graph View**: 可视化知识图谱
+- **Tag Wrangler**: 标签管理
+- **Templater**: 高级模板功能
+- **Marp**: 幻灯片生成
+
+## 自定义配置
+
+编辑 `KIMICODE.md` 可以自定义 Agent 行为:
+
+- 修改目录结构
+- 调整页面模板
+- 自定义标签体系
+- 修改工作流程
+
+## 注意事项
+
+1. **备份**: 定期备份知识库（可用 Git 管理）
+2. **隐私**: 注意敏感信息的处理
+3. **审核**: 重要内容建议人工审核
+4. **协作**: 可与团队共享 wiki 目录
+
+## 故障排除
+
+### Agent 无法读取文件
+
+检查文件路径是否正确，确保使用相对路径或绝对路径。
+
+### 页面链接不工作
+
+检查 Obsidian 设置:
+- Settings → Files and links → New link format: "Shortest path when possible"
+
+### 索引未更新
+
+手动运行: `python scripts/stats.py`
+
+## 贡献
+
+欢迎提交 Issue 和 PR!
+
+## 许可证
+
+MIT License
+
+## 致谢
+
+- 基于 [Karpathy's LLM-Wiki](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f) 模式
+- 为全资产管理系统产品经理定制
+
+---
+
+**开始使用**: 将资料放入 `raw/` 目录，告诉 Agent "请摄入资料"，即可开始构建你的个人知识库！
