@@ -470,10 +470,9 @@ def _create_or_update_entity(
         # 在正文中添加源引用
         content += f"\n## 相关源资料\n\n- [[{source_title}]]\n"
 
-        # 写入文件
+        # 写入文件（使用 create_page 强制路径校验）
         safe_name = _safe_filename(entity_name)
-        entity_path = wm.wiki_path / "entities" / f"{safe_name}.md"
-        entity_path.write_text(content, encoding="utf-8")
+        entity_path = wm.create_page(f"{safe_name}.md", content)
 
         return str(entity_path.relative_to(wm.root_path))
 
@@ -527,8 +526,7 @@ def _create_or_update_concept(
         content += f"\n## 参考来源\n\n- [[{source_title}]]\n"
 
         safe_name = _safe_filename(concept_name)
-        concept_path = wm.wiki_path / "concepts" / f"{safe_name}.md"
-        concept_path.write_text(content, encoding="utf-8")
+        concept_path = wm.create_page(f"{safe_name}.md", content)
 
         return str(concept_path.relative_to(wm.root_path))
 
@@ -545,7 +543,7 @@ def _update_index(wm: WikiManager, title: str, category: str, source_path: Path)
         category_section = f"## {category.capitalize()}"
         if category_section in content:
             # 在类别部分后添加
-            pattern = f"({category_section}.*?)(\n## |\Z)"
+            pattern = rf"({category_section}.*?)(\n## |\Z)"
             match = re.search(pattern, content, re.DOTALL)
             if match:
                 insert_pos = match.end(1)

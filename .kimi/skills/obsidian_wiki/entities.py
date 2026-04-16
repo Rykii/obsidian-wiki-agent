@@ -66,10 +66,9 @@ def create_entity_page(
 
         content += props_section
 
-    # 写入文件
+    # 写入文件（使用 create_page 确保路径正确并受防护）
     safe_name = _safe_filename(name)
-    entity_path = wm.wiki_path / "entities" / f"{safe_name}.md"
-    entity_path.write_text(content, encoding="utf-8")
+    entity_path = wm.create_page(f"{safe_name}.md", content)
 
     # 更新索引
     _update_entity_index(wm, name, entity_type, category)

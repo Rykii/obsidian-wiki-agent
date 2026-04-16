@@ -34,6 +34,7 @@ def lint_wiki(
         "contradictions": [],
         "missing_entities": [],
         "inconsistent_tags": [],
+        "root_md_files": [],
     }
 
     # 获取所有页面
@@ -58,6 +59,10 @@ def lint_wiki(
     # 5. 检查标签一致性
     if check_type in ["all", "tags"]:
         issues["inconsistent_tags"] = _check_tag_consistency(wm, all_pages)
+
+    # 6. 检查根目录非法 .md 文件
+    if check_type in ["all", "root"]:
+        issues["root_md_files"] = _check_root_md_files(wm)
 
     # 生成报告
     report = _generate_lint_report(issues)
@@ -263,6 +268,24 @@ def _check_tag_consistency(wm: WikiManager, all_pages: List[Dict]) -> List[Dict]
     return inconsistencies
 
 
+def _check_root_md_files(wm: WikiManager) -> List[Dict]:
+    """检查 wiki 根目录下的非法 .md 文件"""
+    issues = []
+    for md_file in wm.list_root_md_files():
+        content = md_file.read_text(encoding="utf-8")
+        fm, _ = wm.parse_frontmatter(content)
+        page_type = fm.get("type", "unknown")
+        category = fm.get("category", "unknown")
+        suggested = str(wm._get_target_dir_for_page(fm).relative_to(wm.root_path))
+        issues.append({
+            "path": str(md_file.relative_to(wm.root_path)),
+            "type": page_type,
+            "category": category,
+            "suggested_dir": suggested,
+        })
+    return issues
+
+
 def _generate_lint_report(issues: Dict) -> str:
     """生成检查报告"""
     report = f"""# 知识库健康检查报告
@@ -324,6 +347,14 @@ def _generate_lint_report(issues: Dict) -> str:
             variants = ", ".join([f"`{v}`" for v in tag["variants"]])
             report += f"- `{tag['tag']}`: {variants}\n"
         report += "\n**建议**: 统一标签写法。\n\n"
+
+    # 根目录非法文件
+    if issues["root_md_files"]:
+        report += "## 根目录非法 Markdown 文件\n\n"
+        report += "以下文件不应直接放在 wiki/ 根目录，请移动到对应子目录:\n\n"
+        for item in issues["root_md_files"]:
+            report += f"- `{item['path']}` (类型: {item['type']}, 建议目录: {item['suggested_dir']})\n"
+        report += "\n**建议**: 根据页面类型移动到 entities/、concepts/、work/topics/ 等目录。\n\n"
 
     report += "---\n\n"
     report += "*本报告由 Agent 自动生成*\n"

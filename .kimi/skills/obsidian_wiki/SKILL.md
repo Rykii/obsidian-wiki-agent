@@ -191,3 +191,5 @@ update_index()
 3. 创建页面前检查是否已存在
 4. 保持 frontmatter 格式一致
 5. 使用 Obsidian 维基链接格式
+6. **效率优化**: 复杂内容提取优先使用 `scripts/extract_excel.py`、`scripts/extract_pdf.py`、`scripts/batch_read.py`，输出到文件后再读取
+7. **编码优化**: Shell 命令优先通过 Git Bash (`D:\Codes\cmder\vendor\git-for-windows\usr\bin\bash.exe`) 执行

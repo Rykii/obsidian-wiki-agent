@@ -521,3 +521,63 @@ status: draft
             fm["updated"] = datetime.now().strftime("%Y-%m-%d")
             new_content = self.write_frontmatter(fm, body)
             page_path.write_text(new_content, encoding="utf-8")
+
+    def _get_target_dir_for_page(self, frontmatter: Dict) -> Path:
+        """
+        根据页面类型和类别确定目标目录
+        """
+        page_type = frontmatter.get("type", "unknown")
+        category = frontmatter.get("category", "work")
+
+        if page_type == "entity":
+            return self.wiki_path / "entities"
+        elif page_type == "concept":
+            return self.wiki_path / "concepts"
+        elif page_type in ("source", "topic", "analysis"):
+            if category in ("work", "life", "learning"):
+                if page_type == "source":
+                    return self.wiki_path / category / "sources"
+                elif page_type == "topic":
+                    return self.wiki_path / category / "topics"
+                elif page_type == "analysis":
+                    return self.wiki_path / category / "analyses"
+        return self.wiki_path / category
+
+    def create_page(
+        self,
+        filename: str,
+        content: str,
+        force_dir: Path = None,
+    ) -> Path:
+        """
+        创建新页面，自动根据 frontmatter 类型保存到正确目录。
+        禁止直接保存到 wiki 根目录（index.md 和 log.md 除外）。
+        """
+        fm, _ = self.parse_frontmatter(content)
+        target_dir = force_dir or self._get_target_dir_for_page(fm)
+
+        if target_dir == self.wiki_path and filename not in ("index.md", "log.md"):
+            page_type = fm.get("type", "unknown")
+            category = fm.get("category", "unknown")
+            raise ValueError(
+                f"禁止将类型为 '{page_type}' (category={category}) 的页面 '{filename}' "
+                f"直接保存到 wiki 根目录。请使用对应的子目录。"
+            )
+
+        target_dir.mkdir(parents=True, exist_ok=True)
+        page_path = target_dir / filename
+        if page_path.exists():
+            raise FileExistsError(f"页面已存在: {page_path}")
+        page_path.write_text(content, encoding="utf-8")
+        return page_path
+
+    def list_root_md_files(self) -> List[Path]:
+        """
+        列出 wiki 根目录下除 index.md 和 log.md 外的所有 .md 文件
+        """
+        illegals = []
+        if self.wiki_path.exists():
+            for f in self.wiki_path.glob("*.md"):
+                if f.name not in ("index.md", "log.md"):
+                    illegals.append(f)
+        return illegals

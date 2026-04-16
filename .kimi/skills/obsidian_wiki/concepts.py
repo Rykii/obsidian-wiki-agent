@@ -53,10 +53,9 @@ def create_concept_page(
         definition=definition or f"{name}是...",
     )
 
-    # 写入文件
+    # 写入文件（使用 create_page 确保路径正确并受防护）
     safe_name = _safe_filename(name)
-    concept_path = wm.wiki_path / "concepts" / f"{safe_name}.md"
-    concept_path.write_text(content, encoding="utf-8")
+    concept_path = wm.create_page(f"{safe_name}.md", content)
 
     # 记录日志
     wm.log_operation("create", f"概念: {name}")
